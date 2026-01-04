@@ -1,0 +1,5 @@
+FastAPI
+uvicorn
+beautifulsoup4
+pandas
+numpy
