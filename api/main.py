@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, BackgroundTasks
+from fastapi import FastAPI, Query, BackgroundTasks, HTTPException
 from scripts.scraper import scrape_books
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
@@ -49,3 +49,14 @@ def health():
         "status": "ok",
         "books_loaded": len(BOOKS_DB)
     }
+
+@app.get("/api/v1/books")
+def get_books():
+    return BOOKS_DB
+
+@app.get("/api/v1/books/{id}")
+def get_book_by_id(id: int):
+    for book in BOOKS_DB:
+        if book["id"] == id:
+            return book
+    raise HTTPException(status_code=404, detail="Livro não encontrado")
