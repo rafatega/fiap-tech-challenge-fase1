@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Query
 from scripts.scraper import scrape_books
 
+# Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
+
 app = FastAPI(
     title="Api scraper",
     version="1.0.0",
