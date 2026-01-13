@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, BackgroundTasks
 from scripts.scraper import scrape_books
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
@@ -9,6 +9,9 @@ app = FastAPI(
     description="API para scraping de livros"
 )
 
+def run_scraper_bg(max_pages: int):
+    scrape_books(max_pages=max_pages)
+
 @app.get("/scrape")
 def scrape(max_pages: int = Query(1, ge=1, le=100)):
     books = scrape_books(max_pages=max_pages)
@@ -16,4 +19,15 @@ def scrape(max_pages: int = Query(1, ge=1, le=100)):
         "pages": max_pages,
         "total": len(books),
         "items": books
+    }
+    
+@app.post("/scrape/background")
+def scrape_background(
+    background_tasks: BackgroundTasks,
+    max_pages: int = 1
+):
+    background_tasks.add_task(run_scraper_bg, max_pages)
+    return {
+        "status": "scraping started",
+        "max_pages": max_pages
     }
