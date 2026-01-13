@@ -9,10 +9,21 @@ app = FastAPI(
     description="API para scraping de livros"
 )
 
+BOOKS_DB: list[dict] = []
+
+@app.on_event("startup")
+def load_data():
+    global BOOKS_DB
+    books = scrape_books(max_pages=1)
+    for idx, book in enumerate(books, start=1):
+        book["id"] = idx
+    BOOKS_DB = books
+
+"""
 def run_scraper_bg(max_pages: int):
     scrape_books(max_pages=max_pages)
 
-@app.get("/scrape")
+ @app.get("/scrape")
 def scrape(max_pages: int = Query(1, ge=1, le=100)):
     books = scrape_books(max_pages=max_pages)
     return {
@@ -30,4 +41,11 @@ def scrape_background(
     return {
         "status": "scraping started",
         "max_pages": max_pages
+    }
+ """
+@app.get("/api/v1/health")
+def health():
+    return {
+        "status": "ok",
+        "books_loaded": len(BOOKS_DB)
     }
