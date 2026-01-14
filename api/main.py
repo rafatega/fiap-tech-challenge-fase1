@@ -6,7 +6,7 @@ from scripts.scraper import scrape_books
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
 
 app = FastAPI(
-    title="Api scraper",
+    title="API Tech Challenge - Fase 1",
     version="1.0.0",
     description="API para scraping de livros"
 )
@@ -54,7 +54,7 @@ def scrape_background(
 @app.get(
     "/api/v1/health",
     tags=["health"],
-    summary="Verifica status da API",
+    summary="Verifica o status da API",
     description="Verifica se a API está ativa e quantos livros estão carregados na base.",
     response_model=HealthResponse
 )
@@ -68,7 +68,7 @@ def health():
     "/api/v1/books",
     tags=["books"],
     summary="Lista todos os livros",
-    description="Retorna todos os livros disponíveis na base de dados",
+    description="Lista todos os livros disponíveis na base.",
     response_model=List[Book]
 )
 def get_books():
@@ -78,7 +78,7 @@ def get_books():
     "/api/v1/categories",
     tags=["categories"],
     summary="Lista categorias de livros",
-    description="Retorna uma lista única e ordenada de categorias disponíveis.",
+    description="Retorna uma lista única e ordenada das categorias disponíveis.",
     response_model=List[str],
 )
 def get_categories():
@@ -117,10 +117,10 @@ def search_books(
         "items": results
     }
 
-app.get(
+@app.get(
     "/api/v1/books/{id}",
     tags=["books"],
-    summary="Consulta livro por ID",
+    summary="Consulta os livros pelo ID",
     description="Retorna os detalhes completos de um livro específico pelo ID.",
     response_model=Book,
     responses={
