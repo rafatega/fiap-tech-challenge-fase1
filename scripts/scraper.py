@@ -1,3 +1,4 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -93,7 +94,12 @@ def scrape_books(max_pages: int | None = None):
             sleep(0.1)
 
         page += 1
+        
+    df = pd.DataFrame(BOOKS)
 
+    os.makedirs("data", exist_ok=True)
+    df.to_csv("data/books.csv", index=False)
+    
     logger.success(f"Scraping finalizado. Total de livros: {len(BOOKS)}")
     return BOOKS
 

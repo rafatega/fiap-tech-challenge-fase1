@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI, Query, BackgroundTasks, HTTPException
 from typing import Optional, List
+import pandas as pd
 from pydantic import BaseModel, Field
 from scripts.scraper import scrape_books
 
@@ -31,12 +33,32 @@ class HealthResponse(BaseModel):
 
 BOOKS_DB: list[dict] = []
 
+def load_books_from_csv(path: str = "data/books.csv") -> list[dict]:
+    if not os.path.exists(path):
+        return []
+    df = pd.read_csv(path)
+    if "id" in df.columns:
+        df["id"] = df["id"].astype(int)
+    return df.to_dict(orient="records")
+
 @app.on_event("startup")
 def load_data():
     global BOOKS_DB
-    books = scrape_books(max_pages=1)
-    for idx, book in enumerate(books, start=1):
-        book["id"] = idx
+
+    books = load_books_from_csv("data/books.csv")
+
+    # Se não existe CSV (ou está vazio), faz scraping
+    if not books:
+        books = scrape_books(max_pages=1)
+
+    # ✅ GARANTE ID SEMPRE (mesmo vindo do CSV)
+    if len(books) > 0 and "id" not in books[0]:
+        for idx, book in enumerate(books, start=1):
+            book["id"] = idx
+
+        os.makedirs("data", exist_ok=True)
+        pd.DataFrame(books).to_csv("data/books.csv", index=False)
+
     BOOKS_DB = books
 
 """
@@ -77,7 +99,7 @@ def get_books():
 @app.get(
     "/api/v1/categories",
     tags=["categories"],
-    summary="Lista categorias de livros",
+    summary="Lista as categorias dos livros",
     description="Retorna uma lista única e ordenada das categorias disponíveis.",
     response_model=List[str],
 )
