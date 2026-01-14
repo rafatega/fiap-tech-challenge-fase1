@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query, BackgroundTasks, HTTPException
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel, Field
 from scripts.scraper import scrape_books
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
@@ -9,6 +10,24 @@ app = FastAPI(
     version="1.0.0",
     description="API para scraping de livros"
 )
+
+class Book(BaseModel):
+    id: int = Field(..., example=1)
+    titulo: str = Field(..., example="A Light in the Attic")
+    preco: float = Field(..., example=51.77)
+    rating: int = Field(..., ge=0, le=5, example=3)
+    disponibilidade: str = Field(..., example="In stock")
+    categoria: str = Field(..., example="Poetry")
+    imagem: str = Field(..., example="https://books.toscrape.com/media/cache/...")
+    url: str = Field(..., example="https://books.toscrape.com/catalogue/...")
+
+class SearchResponse(BaseModel):
+    total: int = Field(..., example=2)
+    items: List[Book]
+
+class HealthResponse(BaseModel):
+    status: str = Field(..., example="ok")
+    books_loaded: int = Field(..., example=1000)
 
 BOOKS_DB: list[dict] = []
 
@@ -21,18 +40,6 @@ def load_data():
     BOOKS_DB = books
 
 """
-def run_scraper_bg(max_pages: int):
-    scrape_books(max_pages=max_pages)
-
- @app.get("/scrape")
-def scrape(max_pages: int = Query(1, ge=1, le=100)):
-    books = scrape_books(max_pages=max_pages)
-    return {
-        "pages": max_pages,
-        "total": len(books),
-        "items": books
-    }
-    
 @app.post("/scrape/background")
 def scrape_background(
     background_tasks: BackgroundTasks,
@@ -44,18 +51,49 @@ def scrape_background(
         "max_pages": max_pages
     }
  """
-@app.get("/api/v1/health")
+@app.get(
+    "/api/v1/health",
+    tags=["health"],
+    summary="Verifica status da API",
+    description="Verifica se a API está ativa e quantos livros estão carregados na base.",
+    response_model=HealthResponse
+)
 def health():
     return {
         "status": "ok",
         "books_loaded": len(BOOKS_DB)
     }
 
-@app.get("/api/v1/books")
+@app.get(
+    "/api/v1/books",
+    tags=["books"],
+    summary="Lista todos os livros",
+    description="Retorna todos os livros disponíveis na base de dados",
+    response_model=List[Book]
+)
 def get_books():
     return BOOKS_DB
 
-@app.get("/api/v1/books/search")
+@app.get(
+    "/api/v1/categories",
+    tags=["categories"],
+    summary="Lista categorias de livros",
+    description="Retorna uma lista única e ordenada de categorias disponíveis.",
+    response_model=List[str],
+)
+def get_categories():
+    categories = sorted(
+        {book["categoria"] for book in BOOKS_DB}
+    )
+    return categories
+
+@app.get(
+    "/api/v1/books/search",
+    tags=["books"],
+    summary="Busca livros por título e/ou categoria",
+    description="Busca livros por trecho do título (contém) e/ou categoria (exata).",
+    response_model=SearchResponse
+)
 def search_books(
     title: Optional[str] = Query(None),
     category: Optional[str] = Query(None)
@@ -79,7 +117,23 @@ def search_books(
         "items": results
     }
 
-@app.get("/api/v1/books/{id}")
+app.get(
+    "/api/v1/books/{id}",
+    tags=["books"],
+    summary="Consulta livro por ID",
+    description="Retorna os detalhes completos de um livro específico pelo ID.",
+    response_model=Book,
+    responses={
+        404: {
+            "description": "Livro não encontrado",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Livro não encontrado"}
+                }
+            },
+        }
+    },
+)
 def get_book_by_id(id: int):
     for book in BOOKS_DB:
         if book["id"] == id:
