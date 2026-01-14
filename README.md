@@ -24,4 +24,9 @@ Instale as dependências do projeto com o comando:
 ```bash
 pip install -r requirements.txt
 ```
-    
+
+# Rodando a API
+No diretório raiz do projeto, abra o terminal e rode o comando:
+```bash
+python -m uvicorn api.main:app --reload
+```

@@ -8,7 +8,6 @@ from utils.logger import logger
 # python -m scripts.scraper para rodar o scraper como um módulo, garantindo que as importações funcionem corretamente.
 
 BASE_URL = "https://books.toscrape.com/"
-BOOKS = []
 
 
 def get_soup(url):
@@ -63,11 +62,17 @@ def parse_book(article, book_url):
     }
 
 
-def scrape_books():
+def scrape_books(max_pages: int | None = None):
     logger.info("Iniciando scraping de livros...")
+    BOOKS = []
     page = 1
 
     while True:
+        
+        if max_pages is not None and page > max_pages:
+            logger.info(f"Limite de páginas atingido: {max_pages}")
+            break
+
         page_url = f"{BASE_URL}catalogue/page-{page}.html"
         soup = get_soup(page_url)
 
@@ -76,7 +81,7 @@ def scrape_books():
 
         articles = soup.select("article.product_pod")
         if not articles:
-            break  # Fim das páginas
+            break
 
         logger.info(f"Página {page}")
 
@@ -85,14 +90,12 @@ def scrape_books():
             book_url = urljoin(BASE_URL + "catalogue/", relative_url)
             data = parse_book(article, book_url)
             BOOKS.append(data)
-            sleep(0.1)  # Sleep para evitar sobrecarga no servidor
+            sleep(0.1)
 
         page += 1
 
     logger.success(f"Scraping finalizado. Total de livros: {len(BOOKS)}")
-    df = pd.DataFrame(BOOKS)
-    df.to_csv("data/books.csv", index=False)
-    logger.success("Arquivo salvo em data/books.csv")
+    return BOOKS
 
 
 if __name__ == "__main__":
