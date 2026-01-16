@@ -51,7 +51,7 @@ def load_data():
     if not books:
         books = scrape_books(max_pages=1)
 
-    # ✅ GARANTE ID SEMPRE (mesmo vindo do CSV)
+    # GARANTE ID SEMPRE (mesmo vindo do CSV)
     if len(books) > 0 and "id" not in books[0]:
         for idx, book in enumerate(books, start=1):
             book["id"] = idx
@@ -61,18 +61,6 @@ def load_data():
 
     BOOKS_DB = books
 
-"""
-@app.post("/scrape/background")
-def scrape_background(
-    background_tasks: BackgroundTasks,
-    max_pages: int = 1
-):
-    background_tasks.add_task(run_scraper_bg, max_pages)
-    return {
-        "status": "scraping started",
-        "max_pages": max_pages
-    }
- """
 @app.get(
     "/api/v1/health",
     tags=["health"],
