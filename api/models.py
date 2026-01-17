@@ -70,3 +70,4 @@ class UserOut(BaseModel):
 class TriggerResponse(BaseModel):
     status: str = Field(..., example="accepted")
     message: str = Field(..., example="Scraping disparado em background")
+

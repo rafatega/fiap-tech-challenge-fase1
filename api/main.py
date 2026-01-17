@@ -1,11 +1,12 @@
 import os
-from fastapi import FastAPI, Query, BackgroundTasks, HTTPException
+from fastapi import FastAPI, Query, BackgroundTasks, HTTPException, Depends
 from typing import Optional, List, Dict
 import pandas as pd
-from pydantic import BaseModel, Field
 from scripts.scraper import scrape_books
+from threading import Lock
 
 from .models import Book, SearchResponse, HealthResponse, StatsOverviewResponse, CategoryStatsItem
+from .auth import router as auth_router, ensure_default_users, init_auth_db, require_admin
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
 
@@ -15,49 +16,13 @@ app = FastAPI(
     description="API para scraping de livros"
 )
 
-
-class Book(BaseModel):
-    id: int = Field(..., example=1)
-    titulo: str = Field(..., example="A Light in the Attic")
-    preco: float = Field(..., example=51.77)
-    rating: int = Field(..., ge=0, le=5, example=3)
-    disponibilidade: str = Field(..., example="In stock")
-    categoria: str = Field(..., example="Poetry")
-    imagem: str = Field(...,
-                        example="https://books.toscrape.com/media/cache/...")
-    url: str = Field(..., example="https://books.toscrape.com/catalogue/...")
-
-
-class SearchResponse(BaseModel):
-    total: int = Field(..., example=2)
-    items: List[Book]
-
-
-class HealthResponse(BaseModel):
-    status: str = Field(..., example="ok")
-    books_loaded: int = Field(..., example=1000)
-
-# Classe para estatísticas gerais (/api/v1/stats/overview)
-
-
-class StatsOverviewResponse(BaseModel):
-    total_livros: int = Field(..., example=1000)
-    preco_medio: float = Field(..., example=35.67)
-    distribuicao_ratings: dict[int, int] = Field(..., example={
-                                                 1: 123, 2: 456, 3: 321, 4: 90, 5: 10})
-
-# Classe para estatísticas por categoria (/api/v1/stats/categories)
-
-
-class CategoryStatsItem(BaseModel):
-    count: int
-    min_price: float
-    max_price: float
-    avg_price: float
-    total_price: float
-
+# Inicializa o banco de dados de autenticação e cria usuários padrão
+app.include_router(auth_router)
 
 BOOKS_DB: list[dict] = []
+
+SCRAPING_LOCK = Lock()
+SCRAPING_RUNNING = False
 
 
 def load_books_from_csv(path: str = "data/books.csv") -> list[dict]:
@@ -69,15 +34,42 @@ def load_books_from_csv(path: str = "data/books.csv") -> list[dict]:
     return df.to_dict(orient="records")
 
 
+def _do_scrape_and_reload(max_pages: Optional[int] = None) -> None:
+    """
+    Roda scraping, garante IDs, salva CSV e atualiza BOOKS_DB.
+    """
+    global BOOKS_DB, SCRAPING_RUNNING
+
+    try:
+        # seu scraper já salva data/books.csv
+        books = scrape_books(max_pages=max_pages)
+
+        # garante id (o scraper não gera id)
+        for idx, book in enumerate(books, start=1):
+            book["id"] = idx
+
+        # sobrescreve o CSV agora COM id (pra ficar consistente com sua API)
+        os.makedirs("data", exist_ok=True)
+        pd.DataFrame(books).to_csv("data/books.csv", index=False)
+
+        BOOKS_DB = books
+    finally:
+        SCRAPING_RUNNING = False
+
+
 @app.on_event("startup")
 def load_data():
     global BOOKS_DB
 
+    # Inicializa o banco de autenticação e cria usuários padrão
+    init_auth_db()
+    ensure_default_users()
+
     books = load_books_from_csv("data/books.csv")
 
-    # Se não existe CSV (ou está vazio), faz scraping
+    # Se não existe CSV, carrega lista vazia (o scraper só pode ser disparado via API com permissão de admin)
     if not books:
-        books = scrape_books(max_pages=None)
+        books = []
 
     # GARANTE ID SEMPRE (mesmo vindo do CSV)
     if len(books) > 0 and "id" not in books[0]:
@@ -88,6 +80,30 @@ def load_data():
         pd.DataFrame(books).to_csv("data/books.csv", index=False)
 
     BOOKS_DB = books
+
+
+@app.post(
+    "/api/v1/scraping/trigger",
+    tags=["scraping"],
+    summary="Dispara scraping (ADMIN)",
+    description="Dispara o scraping em background e atualiza o CSV e a base em memória (somente ADMIN).",
+)
+def trigger_scraping(
+    background_tasks: BackgroundTasks,
+    max_pages: Optional[int] = Query(None, ge=1),
+    _: dict = Depends(require_admin),
+):
+    global SCRAPING_RUNNING
+
+    # evita duas execuções simultâneas
+    with SCRAPING_LOCK:
+        if SCRAPING_RUNNING:
+            raise HTTPException(
+                status_code=409, detail="Scraping já está em execução")
+        SCRAPING_RUNNING = True
+
+    background_tasks.add_task(_do_scrape_and_reload, max_pages)
+    return {"status": "accepted", "message": "Scraping disparado em background"}
 
 
 @app.get(
