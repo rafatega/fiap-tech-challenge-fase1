@@ -49,7 +49,7 @@ def load_data():
 
     # Se não existe CSV (ou está vazio), faz scraping
     if not books:
-        books = scrape_books(max_pages=1)
+        books = scrape_books(max_pages=None)
 
     # GARANTE ID SEMPRE (mesmo vindo do CSV)
     if len(books) > 0 and "id" not in books[0]:

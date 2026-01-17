@@ -69,7 +69,7 @@ def scrape_books(max_pages: int | None = None):
     page = 1
 
     while True:
-        
+
         if max_pages is not None and page > max_pages:
             logger.info(f"Limite de páginas atingido: {max_pages}")
             break
@@ -94,15 +94,17 @@ def scrape_books(max_pages: int | None = None):
             sleep(0.1)
 
         page += 1
-        
+
     df = pd.DataFrame(BOOKS)
 
     os.makedirs("data", exist_ok=True)
     df.to_csv("data/books.csv", index=False)
-    
+
     logger.success(f"Scraping finalizado. Total de livros: {len(BOOKS)}")
     return BOOKS
 
 
 if __name__ == "__main__":
-    scrape_books()
+    scrape_books(
+        max_pages=None  # Define None para raspar todas as páginas disponíveis
+    )
