@@ -5,6 +5,8 @@ import pandas as pd
 from pydantic import BaseModel, Field
 from scripts.scraper import scrape_books
 
+from .models import Book, SearchResponse, HealthResponse, StatsOverviewResponse, CategoryStatsItem
+
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
 
 app = FastAPI(
