@@ -1,10 +1,14 @@
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel, Field
 
-# Todos os base models.
+# MODELS DE BOOKS
 
 
 class Book(BaseModel):
+    """
+    Representa os dados completos de um livro retornado pela API.
+    Usado em: múltiplos endpoints de livros.
+    """
     id: int = Field(..., example=1)
     titulo: str = Field(..., example="A Light in the Attic")
     preco: float = Field(..., example=51.77)
@@ -17,27 +21,39 @@ class Book(BaseModel):
 
 
 class SearchResponse(BaseModel):
+    """
+    Resposta padrão para buscas de livros.
+    Usado em: /api/v1/books/search
+    """
     total: int = Field(..., example=2)
     items: List[Book]
 
 
 class HealthResponse(BaseModel):
+    """
+    Modelo usado no endpoint de health check.
+    Usado em: /api/v1/health
+    """
     status: str = Field(..., example="ok")
     books_loaded: int = Field(..., example=1000)
 
-# Classe para estatísticas gerais (/api/v1/stats/overview)
-
 
 class StatsOverviewResponse(BaseModel):
+    """
+    Resumo estatístico geral dos livros disponíveis.
+    Usado em: /api/v1/stats/overview
+    """
     total_livros: int = Field(..., example=1000)
     preco_medio: float = Field(..., example=35.67)
     distribuicao_ratings: dict[int, int] = Field(..., example={
                                                  1: 123, 2: 456, 3: 321, 4: 90, 5: 10})
 
-# Classe para estatísticas por categoria (/api/v1/stats/categories)
-
 
 class CategoryStatsItem(BaseModel):
+    """
+    Estatísticas agregadas por categoria.
+    Usado em: /api/v1/stats/categories
+    """
     count: int
     min_price: float
     max_price: float
@@ -45,13 +61,29 @@ class CategoryStatsItem(BaseModel):
     total_price: float
 
 
-# AUTH
+class TriggerResponse(BaseModel):
+    """
+    Resposta do endpoint de trigger do scraping.
+    Usado em: /api/v1/scrape/trigger
+    """
+    status: str = Field(..., example="accepted")
+    message: str = Field(..., example="Scraping disparado em background")
+
+# MODELS DE AUTENTICAÇÃO
+
+
 class LoginRequest(BaseModel):
+    """
+    Payload esperado para login.
+    """
     username: str = Field(..., example="admin")
     password: str = Field(..., example="admin123")
 
 
 class TokenResponse(BaseModel):
+    """
+    Retorno do login contendo os tokens JWT.
+    """
     token_type: str = Field("bearer", example="bearer")
     access_token: str
     refresh_token: str
@@ -59,15 +91,15 @@ class TokenResponse(BaseModel):
 
 
 class RefreshRequest(BaseModel):
+    """
+    Requisição de renovação do token de acesso.
+    """
     refresh_token: str
 
 
 class UserOut(BaseModel):
+    """
+    Informações do usuário autenticado.
+    """
     username: str
     role: str
-
-
-class TriggerResponse(BaseModel):
-    status: str = Field(..., example="accepted")
-    message: str = Field(..., example="Scraping disparado em background")
-
