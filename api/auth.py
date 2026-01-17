@@ -12,10 +12,10 @@ from .models import LoginRequest, TokenResponse, RefreshRequest
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY") or secrets.token_urlsafe(48)
+SECRET_KEY = secrets.token_urlsafe(48)
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRES_MIN = int(os.getenv("ACCESS_TOKEN_EXPIRES_MIN", "15"))
-REFRESH_TOKEN_EXPIRES_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRES_DAYS", "7"))
+ACCESS_TOKEN_EXPIRES_MIN = 60
+REFRESH_TOKEN_EXPIRES_DAYS = 7
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,8 +33,10 @@ USERS_DB = {
     }
 }
 
+
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
+
 
 def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     user = USERS_DB.get(username)
@@ -43,6 +45,7 @@ def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     if not verify_password(password, user["password_hash"]):
         return None
     return user
+
 
 def create_token(*, subject: str, role: str, token_type: str, expires_delta: timedelta) -> str:
     now = datetime.now(timezone.utc)
@@ -55,6 +58,7 @@ def create_token(*, subject: str, role: str, token_type: str, expires_delta: tim
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+
 def decode_token(token: str) -> Dict[str, Any]:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -62,6 +66,7 @@ def decode_token(token: str) -> Dict[str, Any]:
         raise HTTPException(status_code=401, detail="Token expirado")
     except InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token inválido")
+
 
 @router.post("/login", summary="Login para obter tokens JWT", response_model=TokenResponse)
 def login(data: LoginRequest):
@@ -72,10 +77,13 @@ def login(data: LoginRequest):
     access_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MIN)
     refresh_expires = timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS)
 
-    access = create_token(subject=user["username"], role=user["role"], token_type="access", expires_delta=access_expires)
-    refresh = create_token(subject=user["username"], role=user["role"], token_type="refresh", expires_delta=refresh_expires)
+    access = create_token(subject=user["username"], role=user["role"],
+                          token_type="access", expires_delta=access_expires)
+    refresh = create_token(subject=user["username"], role=user["role"],
+                           token_type="refresh", expires_delta=refresh_expires)
 
     return TokenResponse(access_token=access, refresh_token=refresh, expires_in=int(access_expires.total_seconds()))
+
 
 @router.post("/refresh", summary="Renova tokens usando refresh token", response_model=TokenResponse)
 def refresh(data: RefreshRequest):
@@ -91,7 +99,9 @@ def refresh(data: RefreshRequest):
     access_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MIN)
     refresh_expires = timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS)
 
-    new_access = create_token(subject=username, role=role, token_type="access", expires_delta=access_expires)
-    new_refresh = create_token(subject=username, role=role, token_type="refresh", expires_delta=refresh_expires)
+    new_access = create_token(
+        subject=username, role=role, token_type="access", expires_delta=access_expires)
+    new_refresh = create_token(
+        subject=username, role=role, token_type="refresh", expires_delta=refresh_expires)
 
     return TokenResponse(access_token=new_access, refresh_token=new_refresh, expires_in=int(access_expires.total_seconds()))
