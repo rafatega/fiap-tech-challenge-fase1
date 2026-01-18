@@ -26,7 +26,7 @@ class SearchResponse(BaseModel):
     Usado em: /api/v1/books/search
     """
     total: int = Field(..., example=2)
-    items: List[Book]
+    items: List[Book] = Field(..., description="Lista de livros encontrados")
 
 
 class HealthResponse(BaseModel):
@@ -54,11 +54,11 @@ class CategoryStatsItem(BaseModel):
     Estatísticas agregadas por categoria.
     Usado em: /api/v1/stats/categories
     """
-    count: int
-    min_price: float
-    max_price: float
-    avg_price: float
-    total_price: float
+    count: int = Field(..., example=150)
+    min_price: float = Field(..., example=12.34)
+    max_price: float = Field(..., example=99.99)
+    avg_price: float = Field(..., example=35.67)
+    total_price: float = Field(..., example=12345.67)
 
 
 class TriggerResponse(BaseModel):
@@ -85,8 +85,10 @@ class TokenResponse(BaseModel):
     Retorno do login contendo os tokens JWT.
     """
     token_type: str = Field("bearer", example="bearer")
-    access_token: str
-    refresh_token: str
+    access_token: str = Field(...,
+                              example="eyJhbGciOiJIUzI1NiIsInR5cOiIkpXVCJ9...")
+    refresh_token: str = Field(...,
+                               example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     expires_in: int = Field(..., example=900)
 
 
@@ -94,39 +96,51 @@ class RefreshRequest(BaseModel):
     """
     Requisição de renovação do token de acesso.
     """
-    refresh_token: str
+    refresh_token: str = Field(...,
+                               example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
 
 
 class UserOut(BaseModel):
     """
     Informações do usuário autenticado.
     """
-    username: str
-    role: str
+    username: str = Field(..., example="admin")
+    role: str = Field(..., example="admin")
 
 # MACHINE LEARNING MODELS
 
 
 class MLFeatureItem(BaseModel):
-    id: int  # só para referência (não precisa virar feature no modelo)
-    categoria: str
-    in_stock: int = Field(..., ge=0, le=1)
-    rating: int = Field(..., ge=0, le=5)
+    """
+    Representa as features usadas para treinamento ou predição.
+    """
+    id: int = Field(..., example=10, description="ID do livro (rastreamento)")
+    categoria: str = Field(..., example="Poetry")
+    in_stock: int = Field(..., ge=0, le=1, example=1)
+    rating: int = Field(..., ge=0, le=5, example=4)
 
 
 class MLTrainingDataResponse(BaseModel):
-    X: List[MLFeatureItem]
+    """
+    Dataset formatado para treinamento de modelo ML.
+    """
+    X: List[MLFeatureItem] = Field(...,
+                                   description="Features para treinamento")
     y: List[float] = Field(..., description="Label (preco) para treinamento")
 
 
 class MLPredictionRequest(BaseModel):
-    book_id: int = Field(..., ge=1, description="ID do livro")
-    prediction: int = Field(..., ge=0, le=5,
-                            description="Predição (ex: rating previsto 0..5)")
-    model_name: Optional[str] = Field(
-        None, description="Nome/versão do modelo (opcional)")
+    """
+    Payload esperado para envio de predições.
+    """
+    book_id: int = Field(..., example=10)
+    prediction: float = Field(..., example=42.90, description="Preço previsto")
+    model_name: Optional[str] = Field(None, example="baseline-v1")
 
 
 class MLPredictionResponse(BaseModel):
+    """
+    Resposta após registro de predições.
+    """
     status: str = Field(..., example="ok")
-    saved: MLPredictionRequest
+    saved: MLPredictionRequest = Field(..., description="Predição registrada")
