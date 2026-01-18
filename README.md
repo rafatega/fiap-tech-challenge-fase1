@@ -834,12 +834,16 @@ Token: <access_token>
 #### Params
 - Exemplo de requisição com parâmetro `max_pages` definido como `5`:
 `http://127.0.0.1:8000/api/v1/scraping/trigger?max_pages=5`
+
 ![paramsConfig](./doc/booksScrapingParams.png)
+
 ```bash
 `Key`: max_pages
 `Value`: 5
 ```
+
 #### Resposta
+
 ```json
 {
     "status": "accepted",
