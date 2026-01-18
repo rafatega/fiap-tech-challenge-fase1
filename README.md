@@ -10,6 +10,7 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
   - [Índice](#índice)
   - [Tecnologias Utilizadas](#tecnologias-utilizadas)
   - [Estrutura do Projeto](#estrutura-do-projeto)
+  - [Arquitetura da Aplicação](#arquitetura-da-aplicação)
   - [Como Executar](#como-executar)
   - [Autenticação e Acesso](#autenticação-e-acesso)
     - [Requisição de login para o usuário `admin`](#requisição-de-login-para-o-usuário-admin)
@@ -50,6 +51,9 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
       - [Auth](#auth)
       - [Params](#params)
       - [Resposta](#resposta-11)
+  - [Scraping](#scraping)
+  - [Estatísticas](#estatísticas)
+  - [Scripts e Utilitários](#scripts-e-utilitários)
 
 ---
 
@@ -86,6 +90,46 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 ├── requirements.txt         # Dependências do projeto
 └── README.md                # Documentação principal
 ```
+---
+
+## Arquitetura da Aplicação
+
+```mermaid 
+graph TD
+    subgraph Cliente
+        A[Usuário ou App Externo]
+    end
+
+    subgraph FastAPI
+        A -->|Requisição HTTP| B[main.py]
+
+        B --> C1[Rotas públicas: GET /books, GET /stats,...]
+        B --> C2[Rotas protegidas: POST /scraping/trigger]
+        B --> C3[Rotas de autenticação: POST /auth/login]
+
+        C2 -->|Validação JWT| D[Middleware de Autenticação]
+        C3 --> E[auth.py]
+    end
+
+    subgraph Auth_DB [SQLite - auth.db]
+        E --> F[Tabela users]
+    end
+
+    subgraph Scraper
+        G[scraper.py] --> H[Request para books.toscrape.com]
+        H --> I[Extração e parse HTML]
+        I --> J[books.csv]
+    end
+
+    subgraph App_Interno
+        J --> K[Função load_books_from_csv]
+        K --> L[BOOKS_DB]
+        C1 --> L
+        C2 --> L
+    end
+
+```
+
 ---
 
 ## Como Executar
@@ -851,3 +895,23 @@ Token: <access_token>
     "message": "Scraping disparado em background"
 }
 ```
+
+## Scraping
+* O scraper é implementado em `scripts/scraper.py`.
+* Ele coleta os dados do site e salva em `data/books.csv`.
+* Pode ser executado de duas formas:
+  * Manualmente: `python -m scripts.scraper`
+  * Via API: POST `/api/v1/scraping/trigger` (admin)
+
+## Estatísticas
+* A API oferece endpoints para estatísticas:
+  * /stats/overview: total de livros, preço médio, distribuição de ratings
+    * GET `/api/v1/stats/overview`: estatísticas gerais.
+  * /stats/categories: estatísticas por categoria
+    * GET `/api/v1/stats/categories`: estatísticas detalhadas por categoria.
+
+## Scripts e Utilitários
+* Logger: todos os logs estão centralizados no utils/logger.py
+  * Configuração de log rotativo com Loguru.
+* CSV de livros: salvo em data/books.csv
+* Banco de usuários: SQLite em data/auth.db
