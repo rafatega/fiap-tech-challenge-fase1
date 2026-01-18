@@ -68,6 +68,7 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 ---
 
 ##  Estrutura do Projeto
+```plaintext
 .
 ├── api/
 │   ├── main.py              # Entrypoint da API FastAPI
@@ -84,7 +85,7 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 │   └── app.log              # Arquivo de log (rotativo)
 ├── requirements.txt         # Dependências do projeto
 └── README.md                # Documentação principal
-
+```
 ---
 
 ## Como Executar
