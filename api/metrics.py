@@ -3,12 +3,13 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Deque, Dict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
 from .models import MetricsResponse
+from .auth import require_admin
 from utils.logger import logger
 
 router = APIRouter(prefix="/api/v1/health", tags=["metrics"])
@@ -106,7 +107,8 @@ def get_metrics():
     logger.info("Métricas da API solicitadas")
     uptime_s = time.time() - STORE.started_at
     top_routes = sorted(STORE.by_route.items(),
-                        key=lambda x: x[1], reverse=True)[:25]
+                        key=lambda x: x[1], reverse=True)[:25],
+    _: dict = Depends(require_admin),
 
     return {
         "uptime_seconds": int(uptime_s),
