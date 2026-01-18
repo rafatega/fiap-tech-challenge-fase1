@@ -120,6 +120,12 @@ class MLFeatureItem(BaseModel):
     rating: int = Field(..., ge=0, le=5, example=4)
 
 
+class MLFeatureVector(BaseModel):
+    categoria: str = Field(..., example="Poetry")
+    in_stock: int = Field(..., ge=0, le=1, example=1)
+    rating: int = Field(..., ge=0, le=5, example=4)
+
+
 class MLTrainingDataResponse(BaseModel):
     """
     Dataset formatado para treinamento de modelo ML.

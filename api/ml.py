@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
-from .models import MLFeatureItem, MLTrainingDataResponse, MLPredictionRequest, MLPredictionResponse
+from .models import MLFeatureItem, MLFeatureVector, MLTrainingDataResponse, MLPredictionRequest, MLPredictionResponse
 from utils.logger import logger
 
 router = APIRouter(prefix="/api/v1/ml", tags=["ml"])
@@ -60,8 +60,7 @@ def get_ml_features():
     description=(
         "Retorna o dataset completo para treinamento de modelo.\n\n"
         "- X: features (categoria, in_stock, rating)\n"
-        "- y: label (preco)\n\n"
-        "Obs.: o 'id' em X é apenas para rastreabilidade (não é necessário usar como feature)."),
+        "- y: label (preco)\n\n"),
     response_model=MLTrainingDataResponse,
 )
 def get_ml_training_data():
@@ -74,7 +73,7 @@ def get_ml_training_data():
     from .main import BOOKS_DB
 
     X = [
-        MLFeatureItem(
+        MLFeatureVector(
             categoria=str(b.get("categoria", "Unknown")),
             in_stock=_to_in_stock(str(b.get("disponibilidade", ""))),
             rating=int(b.get("rating", 0) or 0),
