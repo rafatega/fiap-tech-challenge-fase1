@@ -130,8 +130,8 @@ class MLTrainingDataResponse(BaseModel):
     """
     Dataset formatado para treinamento de modelo ML.
     """
-    X: List[MLFeatureItem] = Field(...,
-                                   description="Features para treinamento")
+    X: List[MLFeatureVector] = Field(...,
+                                     description="Features para treinamento")
     y: List[float] = Field(..., description="Label (preco) para treinamento")
 
 
