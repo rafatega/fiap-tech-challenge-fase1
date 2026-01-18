@@ -8,7 +8,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from .models import MetricsResponse
+from .state import get_books_db
+from .models import MetricsResponse, HealthResponse
 from .auth import require_admin
 from utils.logger import logger
 
@@ -102,6 +103,15 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
             STORE.observe(route=route, status_code=status_code,
                           latency_ms=elapsed_ms)
+
+
+@router.get("/", tags=["health"], response_model=HealthResponse)
+def health():
+    """Verifica se a API está online e quantos livros estão carregados."""
+    BOOKS_DB = get_books_db()
+
+    logger.info("Health check solicitado.")
+    return {"status": "ok", "books_loaded": len(BOOKS_DB)}
 
 
 @router.get(

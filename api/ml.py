@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
+from .state import get_books_db
 from .models import MLFeatureItem, MLFeatureVector, MLTrainingDataResponse, MLPredictionRequest, MLPredictionResponse
 from utils.logger import logger
 
@@ -40,8 +41,7 @@ def get_ml_features():
     Retorna a lista de features (X), uma linha por livro.
     """
     logger.info("Consulta de features para ML solicitada")
-    # Import local evita import circular entre routers e main
-    from .main import BOOKS_DB
+    BOOKS_DB = get_books_db()
 
     return [
         MLFeatureItem(
@@ -70,7 +70,7 @@ def get_ml_training_data():
     - y: lista de preços (float) correspondentes
     """
     logger.info("Consulta de dataset para treinamento de ML solicitada")
-    from .main import BOOKS_DB
+    BOOKS_DB = get_books_db()
 
     X = [
         MLFeatureVector(
@@ -106,7 +106,7 @@ def post_ml_predictions(payload: MLPredictionRequest):
     """
     logger.info(
         f"Recebida predição para book_id {payload.book_id}: {payload.prediction}")
-    from .main import BOOKS_DB
+    BOOKS_DB = get_books_db()
 
     exists = any(b.get("id") == payload.book_id for b in BOOKS_DB)
     if not exists:
