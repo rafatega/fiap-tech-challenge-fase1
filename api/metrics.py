@@ -74,6 +74,16 @@ def _summary(values) -> dict:
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Ignora rotas internas do FastAPI e a própria rota de métricas, visando reduzir métricas irrelevantes
+        path = request.url.path
+        if path in (
+            "/openapi.json",
+            "/docs",
+            "/redoc",
+            "/api/v1/health/performance",
+            "/api/v1/health"
+        ):
+            return await call_next(request)
         start = time.perf_counter()
         STORE.in_flight += 1
 
