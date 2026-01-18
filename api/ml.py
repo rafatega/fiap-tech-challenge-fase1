@@ -75,8 +75,6 @@ def get_ml_training_data():
 
     X = [
         MLFeatureItem(
-            # referência, não precisa usar como feature no modelo
-            id=int(b["id"]),
             categoria=str(b.get("categoria", "Unknown")),
             in_stock=_to_in_stock(str(b.get("disponibilidade", ""))),
             rating=int(b.get("rating", 0) or 0),
