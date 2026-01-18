@@ -10,6 +10,7 @@ from collections import defaultdict
 from utils.logger import logger  # Logger central do projeto
 from .models import Book, SearchResponse, HealthResponse, StatsOverviewResponse, CategoryStatsItem
 from .auth import router as auth_router, ensure_default_users, init_auth_db, require_admin
+from .ml import router as ml_router
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
 
@@ -21,6 +22,9 @@ app = FastAPI(
 
 # Roteador de autenticação
 app.include_router(auth_router)
+
+# Roteador de ML
+app.include_router(ml_router)
 
 BOOKS_DB: list[dict] = []  # Base em memória (é recarregada na inicialização)
 

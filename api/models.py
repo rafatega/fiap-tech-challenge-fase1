@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 # MODELS DE BOOKS
@@ -103,3 +103,31 @@ class UserOut(BaseModel):
     """
     username: str
     role: str
+
+# MACHINE LEARNING MODELS
+
+
+class MLFeatureItem(BaseModel):
+    id: int
+    preco: float
+    categoria: str
+    in_stock: int = Field(..., ge=0, le=1,
+                          description="1 se estiver em estoque, senão 0")
+
+
+class MLTrainingDataResponse(BaseModel):
+    X: List[MLFeatureItem]
+    y: List[int] = Field(..., description="Label (rating) para treinamento")
+
+
+class MLPredictionRequest(BaseModel):
+    book_id: int = Field(..., ge=1, description="ID do livro")
+    prediction: int = Field(..., ge=0, le=5,
+                            description="Predição (ex: rating previsto 0..5)")
+    model_name: Optional[str] = Field(
+        None, description="Nome/versão do modelo (opcional)")
+
+
+class MLPredictionResponse(BaseModel):
+    status: str = Field(..., example="ok")
+    saved: MLPredictionRequest
