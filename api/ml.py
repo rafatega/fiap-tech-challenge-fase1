@@ -20,19 +20,18 @@ def _to_in_stock(disponibilidade: str) -> int:
 @router.get(
     "/features",
     summary="Dados formatados para features",
-    description="Retorna as features (X) prontas para consumo por modelos ML.",
+    description="Retorna features (X) prontas para consumo por modelos ML.",
     response_model=List[MLFeatureItem],
 )
 def get_ml_features():
-    # Import local pra pegar o BOOKS_DB sem criar dependência circular no import do app
     from .main import BOOKS_DB
 
     return [
         MLFeatureItem(
             id=int(b["id"]),
-            preco=float(b.get("preco", 0.0) or 0.0),
             categoria=str(b.get("categoria", "Unknown")),
             in_stock=_to_in_stock(str(b.get("disponibilidade", ""))),
+            rating=int(b.get("rating", 0) or 0),
         )
         for b in BOOKS_DB
     ]
@@ -41,7 +40,7 @@ def get_ml_features():
 @router.get(
     "/training-data",
     summary="Dataset para treinamento",
-    description="Retorna X (features) e y (rating) para treinamento de modelo.",
+    description="Retorna X (features) e y (preco) para treinamento de modelo.",
     response_model=MLTrainingDataResponse,
 )
 def get_ml_training_data():
@@ -49,14 +48,16 @@ def get_ml_training_data():
 
     X = [
         MLFeatureItem(
+            # referência, não precisa usar como feature no modelo
             id=int(b["id"]),
-            preco=float(b.get("preco", 0.0) or 0.0),
             categoria=str(b.get("categoria", "Unknown")),
             in_stock=_to_in_stock(str(b.get("disponibilidade", ""))),
+            rating=int(b.get("rating", 0) or 0),
         )
         for b in BOOKS_DB
     ]
-    y = [int(b.get("rating", 0) or 0) for b in BOOKS_DB]
+
+    y = [float(b.get("preco", 0.0) or 0.0) for b in BOOKS_DB]
 
     return {"X": X, "y": y}
 

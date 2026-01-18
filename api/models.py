@@ -108,16 +108,15 @@ class UserOut(BaseModel):
 
 
 class MLFeatureItem(BaseModel):
-    id: int
-    preco: float
+    id: int  # só para referência (não precisa virar feature no modelo)
     categoria: str
-    in_stock: int = Field(..., ge=0, le=1,
-                          description="1 se estiver em estoque, senão 0")
+    in_stock: int = Field(..., ge=0, le=1)
+    rating: int = Field(..., ge=0, le=5)
 
 
 class MLTrainingDataResponse(BaseModel):
     X: List[MLFeatureItem]
-    y: List[int] = Field(..., description="Label (rating) para treinamento")
+    y: List[float] = Field(..., description="Label (preco) para treinamento")
 
 
 class MLPredictionRequest(BaseModel):
