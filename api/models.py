@@ -140,7 +140,8 @@ class MLPredictionRequest(BaseModel):
     Payload esperado para envio de predições.
     """
     book_id: int = Field(..., example=10)
-    prediction: float = Field(..., example=42.90, description="Preço previsto")
+    price_prediction: float = Field(..., example=42.90,
+                                    description="Preço previsto")
     model_name: Optional[str] = Field(None, example="baseline-v1")
 
 
