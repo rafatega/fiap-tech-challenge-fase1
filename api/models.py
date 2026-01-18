@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
 # MODELS DE BOOKS
@@ -150,3 +150,34 @@ class MLPredictionResponse(BaseModel):
     """
     status: str = Field(..., example="ok")
     saved: MLPredictionRequest = Field(..., description="Predição registrada")
+
+# MÉTRICAS DA API
+
+
+class LatencySummary(BaseModel):
+    count: int = Field(..., example=1200)
+    avg_ms: float = Field(..., example=12.34)
+    p50_ms: float = Field(..., example=10.0)
+    p95_ms: float = Field(..., example=35.0)
+    p99_ms: float = Field(..., example=80.0)
+    min_ms: float = Field(..., example=1.2)
+    max_ms: float = Field(..., example=250.5)
+
+
+class TopRouteItem(BaseModel):
+    route: str = Field(..., example="/api/v1/books/{id}")
+    count: int = Field(..., example=420)
+
+
+class MetricsResponse(BaseModel):
+    uptime_seconds: int = Field(..., example=3600)
+    in_flight: int = Field(..., example=0)
+    total_requests: int = Field(..., example=5000)
+    by_status: Dict[str, int] = Field(..., example={
+                                      "2xx": 4900, "4xx": 80, "5xx": 20})
+    top_routes: List[TopRouteItem] = Field(...,
+                                           description="Rotas mais acessadas")
+    latency_overall: LatencySummary = Field(...,
+                                            description="Resumo de latência geral")
+    latency_by_route: Dict[str, LatencySummary] = Field(...,
+                                                        description="Resumo de latência por rota")

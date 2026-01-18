@@ -11,6 +11,7 @@ from utils.logger import logger  # Logger central do projeto
 from .models import Book, SearchResponse, HealthResponse, StatsOverviewResponse, CategoryStatsItem
 from .auth import router as auth_router, ensure_default_users, init_auth_db, require_admin
 from .ml import router as ml_router
+from .metrics import router as metrics_router, MetricsMiddleware
 
 # Para rodar corretamente: python -m uvicorn api.main:app --reload na pasta raiz do projeto
 
@@ -25,6 +26,10 @@ app.include_router(auth_router)
 
 # Roteador de ML
 app.include_router(ml_router)
+
+# Roteador de métricas + middleware
+app.include_router(metrics_router)
+app.add_middleware(MetricsMiddleware)
 
 BOOKS_DB: list[dict] = []  # Base em memória (é recarregada na inicialização)
 
