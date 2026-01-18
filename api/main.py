@@ -15,7 +15,7 @@ from .auth import router as auth_router, ensure_default_users, init_auth_db, req
 
 app = FastAPI(
     title="API Tech Challenge - Fase 1",
-    version="1.0.1",
+    version="1.0.2",
     description="API para scraping de livros"
 )
 
