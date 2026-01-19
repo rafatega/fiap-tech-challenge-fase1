@@ -105,7 +105,7 @@ def post_ml_predictions(payload: MLPredictionRequest):
     - Ele apenas recebe e armazena a predição enviada pelo cliente.
     """
     logger.info(
-        f"Recebida predição para book_id {payload.book_id}: {payload.prediction}")
+        f"Recebida predição para book_id {payload.book_id}: {payload.price_prediction}")
     BOOKS_DB = get_books_db()
 
     exists = any(b.get("id") == payload.book_id for b in BOOKS_DB)

@@ -6,6 +6,7 @@ import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 
 from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
@@ -23,6 +24,9 @@ JWT_EXP_DELTA_SECONDS = int(
     os.getenv("JWT_EXP_DELTA_SECONDS", "3600"))  # access: 1h
 JWT_REFRESH_DELTA_SECONDS = int(
     os.getenv("JWT_REFRESH_DELTA_SECONDS", str(7 * 24 * 3600)))  # refresh: 7d
+
+# Segurança HTTP Bearer
+bearer_scheme = HTTPBearer()
 
 
 # Configuração do Banco de Usuários
@@ -138,42 +142,28 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 
 
 # Dependências de segurança
-def token_required(request: Request) -> dict:
+def token_required(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> dict:
     """
     Verifica se o token JWT válido foi enviado no header Authorization.
+    (Integra com Swagger/Docs via HTTPBearer)
     """
-    auth_header = request.headers.get("Authorization", "")
-    parts = auth_header.split()
-
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        logger.warning("Token ausente ou malformado no header Authorization.")
-        raise HTTPException(
-            status_code=401,
-            detail="Token ausente ou malformado (use Authorization: Bearer <token>)"
-        )
-
-    payload = decode_token(parts[1])
+    token = credentials.credentials
+    payload = decode_token(token)
 
     if payload.get("type") != "access":
         logger.warning("Token de acesso inválido.")
         raise HTTPException(status_code=401, detail="Token de acesso inválido")
 
     logger.debug(f"Token válido para usuário: {payload.get('username')}")
-
     return payload
 
 
 def require_admin(payload: dict = Depends(token_required)) -> dict:
-    """
-    Garante que o usuário tenha role "admin".
-    """
     if payload.get("role") != "admin":
-        logger.warning(
-            "Usuário sem permissão de administrador tentou acessar recurso protegido.")
         raise HTTPException(
             status_code=403, detail="Acesso restrito a administradores")
-    logger.debug(
-        f"Usuário administrador autorizado: {payload.get('username')}")
     return payload
 
 
