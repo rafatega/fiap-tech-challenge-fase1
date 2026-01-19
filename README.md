@@ -7,53 +7,53 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 ## Índice
 
 - [FIAP Tech Challenge - Fase 1](#fiap-tech-challenge---fase-1)
-  - [Índice](#índice)
-  - [Tecnologias Utilizadas](#tecnologias-utilizadas)
-  - [Estrutura do Projeto](#estrutura-do-projeto)
-  - [Arquitetura da Aplicação](#arquitetura-da-aplicação)
-  - [Como Executar](#como-executar)
-  - [Autenticação e Acesso](#autenticação-e-acesso)
-    - [Requisição de login para o usuário `admin`](#requisição-de-login-para-o-usuário-admin)
-    - [Requisição de login para o usuário `user`](#requisição-de-login-para-o-usuário-user)
-    - [Resposta esperada](#resposta-esperada)
-    - [Como usar o token](#como-usar-o-token)
-    - [Renovar token](#renovar-token)
-  - [Endpoints da API](#endpoints-da-api)
-    - [Run results](#run-results)
-    - [POST /api/v1/auth/login](#post-apiv1authlogin)
-      - [Body](#body)
-      - [Resposta](#resposta)
-    - [POST /api/v1/auth/refresh](#post-apiv1authrefresh)
-      - [Body](#body-1)
-      - [Resposta](#resposta-1)
-    - [GET /api/v1/health](#get-apiv1health)
-      - [Resposta](#resposta-2)
-    - [GET /api/v1/books](#get-apiv1books)
-      - [Resposta](#resposta-3)
-    - [GET /api/v1/books/search](#get-apiv1bookssearch)
-      - [Parâmetros de exemplo](#parâmetros-de-exemplo)
-      - [Resposta](#resposta-4)
-    - [GET /api/v1/books/{id}](#get-apiv1booksid)
-      - [Parâmetros de exemplo](#parâmetros-de-exemplo-1)
-      - [Resposta](#resposta-5)
-    - [GET /api/v1/books/top-rated](#get-apiv1bookstop-rated)
-      - [Resposta](#resposta-6)
-    - [/api/v1/books/price-range](#apiv1booksprice-range)
-      - [Parâmetros de exemplo](#parâmetros-de-exemplo-2)
-      - [Resposta](#resposta-7)
-    - [GET /api/v1/categories](#get-apiv1categories)
-      - [Resposta](#resposta-8)
-    - [GET /api/v1/stats/overview](#get-apiv1statsoverview)
-      - [Resposta](#resposta-9)
-    - [GET /api/v1/stats/categories](#get-apiv1statscategories)
-      - [Resposta](#resposta-10)
-    - [POST /api/v1/scraping/trigger](#post-apiv1scrapingtrigger)
-      - [Auth](#auth)
-      - [Params](#params)
-      - [Resposta](#resposta-11)
-  - [Scraping](#scraping)
-  - [Estatísticas](#estatísticas)
-  - [Scripts e Utilitários](#scripts-e-utilitários)
+	- [Índice](#índice)
+	- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+	- [Estrutura do Projeto](#estrutura-do-projeto)
+	- [Arquitetura da Aplicação](#arquitetura-da-aplicação)
+	- [Como Executar](#como-executar)
+	- [Autenticação e Acesso](#autenticação-e-acesso)
+		- [Requisição de login para o usuário `admin`](#requisição-de-login-para-o-usuário-admin)
+		- [Requisição de login para o usuário `user`](#requisição-de-login-para-o-usuário-user)
+		- [Resposta esperada](#resposta-esperada)
+		- [Como usar o token](#como-usar-o-token)
+		- [Renovar token](#renovar-token)
+	- [Endpoints da API](#endpoints-da-api)
+		- [Run results](#run-results)
+		- [POST /api/v1/auth/login](#post-apiv1authlogin)
+			- [Body](#body)
+			- [Resposta](#resposta)
+		- [POST /api/v1/auth/refresh](#post-apiv1authrefresh)
+			- [Body](#body-1)
+			- [Resposta](#resposta-1)
+		- [GET /api/v1/health](#get-apiv1health)
+			- [Resposta](#resposta-2)
+		- [GET /api/v1/books](#get-apiv1books)
+			- [Resposta](#resposta-3)
+		- [GET /api/v1/books/search](#get-apiv1bookssearch)
+			- [Parâmetros de exemplo](#parâmetros-de-exemplo)
+			- [Resposta](#resposta-4)
+		- [GET /api/v1/books/{id}](#get-apiv1booksid)
+			- [Parâmetros de exemplo](#parâmetros-de-exemplo-1)
+			- [Resposta](#resposta-5)
+		- [GET /api/v1/books/top-rated](#get-apiv1bookstop-rated)
+			- [Resposta](#resposta-6)
+		- [/api/v1/books/price-range](#apiv1booksprice-range)
+			- [Parâmetros de exemplo](#parâmetros-de-exemplo-2)
+			- [Resposta](#resposta-7)
+		- [GET /api/v1/books/categories](#get-apiv1bookscategories)
+			- [Resposta](#resposta-8)
+		- [GET /api/v1/stats/overview](#get-apiv1statsoverview)
+			- [Resposta](#resposta-9)
+		- [GET /api/v1/stats/categories](#get-apiv1statscategories)
+			- [Resposta](#resposta-10)
+		- [POST /api/v1/scraping/trigger](#post-apiv1scrapingtrigger)
+			- [Auth](#auth)
+			- [Params](#params)
+			- [Resposta](#resposta-11)
+	- [Scraping](#scraping)
+	- [Estatísticas](#estatísticas)
+	- [Scripts e Utilitários](#scripts-e-utilitários)
 
 ---
 
@@ -229,7 +229,7 @@ Exemplo de requisição:
 | `GET`  | `/api/v1/books/{id}`        | Consulta livro por ID                  |
 | `GET`  | `/api/v1/books/top-rated`   | Lista livros com melhor rating         |
 | `GET`  | `/api/v1/books/price-range` | Filtra livros por preço                |
-| `GET`  | `/api/v1/categories`        | Lista categorias disponíveis           |
+| `GET`  | `/api/v1/books/categories`        | Lista categorias disponíveis           |
 | `GET`  | `/api/v1/stats/overview`    | Estatísticas gerais dos livros         |
 | `GET`  | `/api/v1/stats/categories`  | Estatísticas por categoria             |
 | `POST` | `/api/v1/scraping/trigger`  | (admin) Dispara scraping em background |
@@ -397,7 +397,7 @@ Todas APIs foram testadas utilizando o Postman. Abaixo estão os resultados da e
 		},
 		{
 			"id": "5e8160e2-028d-4d87-aa59-bd1a0f6f3347",
-			"name": "/api/v1/categories",
+			"name": "/api/v1/books/categories",
 			"url": "http://127.0.0.1:8000/api/v1/categories\n",
 			"time": 2,
 			"responseCode": {
@@ -751,7 +751,7 @@ Filtrando por preço entre 20 e 27: `http://127.0.0.1:8000/api/v1/books/price-ra
 ] 
 ```
 
-### GET /api/v1/categories
+### GET /api/v1/books/categories
 Endpoint para obter a lista de categorias disponíveis na base de dados.
 - Não precisa de autenticação é um endpoint público.
 - Não precisa de parâmetros.

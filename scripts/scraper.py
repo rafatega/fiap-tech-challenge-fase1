@@ -112,6 +112,7 @@ def scrape_books(max_pages: int | None = None):
             logger.warning(f"Nenhum artigo encontrado na página {page}")
             break
 
+        logger.info(f"Página {page}")
         logger.debug(f"Página {page} - Livros encontrados: {len(articles)}")
 
         for article in articles:
