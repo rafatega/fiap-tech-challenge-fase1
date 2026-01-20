@@ -5,11 +5,13 @@ import pandas as pd
 import requests
 import streamlit as st
 
+# Para rodar localmente: streamlit run dashboard/app.py
+
 API_BASE = os.getenv(
     "API_BASE", "https://fiap-tech-challenge-fase1-18ng.onrender.com").rstrip("/")
 
-st.set_page_config(page_title="Dashboard - Books & API Metrics", layout="wide")
-st.title("Dashboard - Books Dataset + API Performance")
+st.set_page_config(page_title="Dashboard - Books", layout="wide")
+st.title("Dashboard - Books Dataset")
 
 # Helpers
 
