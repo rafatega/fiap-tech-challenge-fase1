@@ -875,7 +875,8 @@ Modelo de logs implementado com Loguru em `utils/logger.py`.
 
 ## Dashboard de Insights
 * Implementado com Streamlit em `dashboard/app.py`.
-* Executar com: `streamlit run dashboard/app.py`
+* Consumir em produção: `https://fiap-tech-challenge-fase1-1.onrender.com/`
+* Consumir localmente: `streamlit run dashboard/app.py`
 
 ---
 
