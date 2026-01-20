@@ -114,7 +114,6 @@ class MLFeatureItem(BaseModel):
     """
     Representa as features usadas para treinamento ou predição.
     """
-    id: int = Field(..., example=10, description="ID do livro (rastreamento)")
     categoria: str = Field(..., example="Poetry")
     in_stock: int = Field(..., ge=0, le=1, example=1)
     rating: int = Field(..., ge=0, le=5, example=4)
