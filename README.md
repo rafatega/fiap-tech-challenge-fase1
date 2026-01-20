@@ -8,6 +8,7 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 
 - [FIAP Tech Challenge - Fase 1](#fiap-tech-challenge---fase-1)
 	- [Índice](#índice)
+	- [Objetivo do Projeto](#objetivo-do-projeto)
 	- [Tecnologias Utilizadas](#tecnologias-utilizadas)
 	- [Estrutura do Projeto](#estrutura-do-projeto)
 	- [Arquitetura da Aplicação](#arquitetura-da-aplicação)
@@ -69,8 +70,41 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 	- [Scripts e Utilitários](#scripts-e-utilitários)
 	- [Logs](#logs)
 	- [Dashboard de Insights](#dashboard-de-insights)
+	- [Checklist de Requisitos Atendidos](#checklist-de-requisitos-atendidos)
+		- [Entregáveis Obrigatórios](#entregáveis-obrigatórios)
+		- [Objetivos Técnicos Core](#objetivos-técnicos-core)
+		- [Desafios Adicionais](#desafios-adicionais)
 
 ---
+
+## Objetivo do Projeto
+
+Este projeto foi desenvolvido como parte do FIAP Tech Challenge – Fase 1, com o objetivo de construir
+uma solução completa de dados para o domínio de livros, cobrindo todo o fluxo:
+
+1. **Coleta de dados**  
+   - Realizar scraping do site [Books to Scrape](https://books.toscrape.com) e armazenar os livros
+     em `data/books.csv`.
+
+2. **Exposição via API RESTful**  
+   - Disponibilizar os dados de livros através de uma API construída em **FastAPI**, organizada em
+     múltiplos roteadores (`auth`, `books`, `stats`, `ml`, `scraping`, `health`).
+   - Implementar autenticação baseada em **JWT**, com rotas administrativas protegidas
+     (`/api/v1/scraping/trigger` e `/api/v1/health/performance`).
+
+3. **Suporte a análises e Machine Learning**  
+   - Expor endpoints específicos para consumo por modelos de ML
+     (`/api/v1/ml/features`, `/api/v1/ml/training-data`, `/api/v1/ml/predictions`),
+     reutilizando os dados do `books.csv`.
+   - Fornecer endpoints de estatísticas agregadas (`/api/v1/stats/*`) para apoiar insights e dashboards.
+
+4. **Visualização e insights**  
+   - Oferecer um **dashboard em Streamlit** que consome a API e apresenta métricas e estatísticas
+     sobre o catálogo de livros.
+
+Além de atender aos requisitos do desafio, o projeto também busca demonstrar boas práticas de
+engenharia de software, como separação por módulos, documentação clara de endpoints, logging
+estruturado e preocupação com observabilidade e monitoramento da API.
 
 ## Tecnologias Utilizadas
 
@@ -100,7 +134,7 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 │   ├── state.py			 # Estado global da aplicação (DB de livros em memória)
 │   ├── stats.py			 # Lógica de estatísticas dos livros e endpoints
 ├── dashboard/
-│   ├── app.py               # Aplicação Dash para visualização dos dados usando streamlit
+│   ├── app.py               # Aplicação de dashboard para visualização dos dados usando Streamlit
 ├── data/
 │   └── books.csv            # Base de dados em CSV (scraping)
 │   └── auth.db              # Banco de usuários (SQLite)
@@ -118,8 +152,93 @@ API desenvolvida para realizar scraping de livros do site [Books to Scrape](http
 ---
 
 ## Arquitetura da Aplicação
+- A aplicação é composta por uma API FastAPI com múltiplos roteadores (auth, books, stats, ml, scraping, health) e um dashboard em Streamlit.
+- O scraper coleta dados do site Books to Scrape e salva em data/books.csv.
+- Os endpoints de books, stats e machine learning consomem esse CSV, enquanto o endpoint /api/v1/ml/predictions salva as predições em memória.
+A autenticação é feita via JWT, com rotas protegidas para /api/v1/scraping/trigger e /api/v1/health/performance (apenas admin).
 
 ![Arquitetura da Aplicação](./doc/mermaidArquiteturaPicWhite.png)
+
+<details>
+<summary>Ver diagrama em Mermaid</summary>
+
+```mermaid
+flowchart TD
+    %% Definição de classes para os subgráficos
+    classDef app fill:#E3F2FD,stroke:#0D47A1,stroke-width:2px;
+    classDef auth fill:#FFF3E0,stroke:#FF9800,stroke-width:2px;
+    classDef db fill:#E1BEE7,stroke:#6A1B9A,stroke-width:2px;
+    classDef ml fill:#E8F5E9,stroke:#388E3C,stroke-width:2px;
+    classDef data fill:#F9FBE7,stroke:#AFB42B,stroke-width:2px;
+    classDef dash fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px;
+
+    %% FastAPI App
+    subgraph FASTAPI[FastAPI App]
+        direction TB
+        main["main.py FastAPI"]:::app
+        main --> auth_router["auth_router<br>/api/v1/auth"]:::app
+        main --> ml_router["ml_router<br>/api/v1/ml"]:::app
+        main --> metrics_router["metrics_router<br>/api/v1/health"]:::app
+        main --> books_router["books_router<br>/api/v1/books"]:::app
+        main --> stats_router["stats_router<br>/api/v1/stats"]:::app
+        main --> scraping_router["scraping_router<br>/api/v1/scraping"]:::app
+    end
+
+    %% Autenticação JWT
+    subgraph AUTH["Autenticação JWT"]
+        direction TB
+        auth_router --> login_endpoint{{"Login<br>/login"}}:::auth
+        auth_router --> refresh_endpoint{{"Refresh<br>/refresh"}}:::auth
+        auth_db[(auth.db SQLite)]:::db
+        login_endpoint --> auth_db
+        refresh_endpoint --> auth_db
+    end
+
+    %% ML Endpoints
+    subgraph ML["ML Endpoints"]
+        direction TB
+        ml_router --> ml_features["/ml/features"]:::ml
+        ml_router --> ml_training["/ml/training_data"]:::ml
+        ml_router --> ml_predictions["/ml/predictions"]:::ml
+    end
+
+    %% Books e Data
+    subgraph DATA["Livros & Dados"]
+        direction TB
+        scraping_router --> trigger_scraping{{"/scraping/trigger"}}:::data
+        trigger_scraping -->|Protegido ADMIN| jwt_auth1(["JWT Token"]):::data
+        jwt_auth1 --> scraping_process(["Executa Scraping<br>de Livros"]):::data
+        scraping_process --> books_csv[(data/books.csv)]:::data
+        books_csv --> books_router
+        books_csv --> stats_router
+        books_csv --> ml_features
+        books_csv --> ml_training
+        ml_predictions --> books_csv
+    end
+
+    %% Métricas
+    metrics_router --> perf_route{{"/health/performance"}}:::app
+    perf_route -->|Protegido ADMIN| jwt_auth2(["JWT Token"]):::app
+
+    %% Dashboard
+    subgraph DASHBOARD["Dashboard Streamlit"]
+        direction TB
+        dashboard["dashboard/app.py"]:::dash
+        dashboard --> stats_overview["GET /stats/overview"]:::dash
+        dashboard --> stats_categories["GET /stats/categories"]:::dash
+    end
+    stats_router --> stats_overview
+    stats_router --> stats_categories
+
+    %% Agrupamento visual (pode ser melhorado no editor visual)
+    class FASTAPI,main,auth_router,ml_router,metrics_router,books_router,stats_router,scraping_router app;
+    class AUTH,login_endpoint,refresh_endpoint auth;
+    class auth_db db;
+    class ML,ml_features,ml_training,ml_predictions ml;
+    class DATA,trigger_scraping,jwt_auth1,scraping_process,books_csv data;
+    class DASHBOARD,dashboard,stats_overview,stats_categories dash;
+```
+</details>
 
 ---
 
@@ -174,9 +293,9 @@ streamlit run dashboard/app.py
 A API utiliza autenticação baseada em JWT (JSON Web Tokens).
 Existem dois usuários padrão criados automaticamente no banco:
 
-* admin / `admin123`
+* admin / `admin`
 
-* user / `user123`
+* user / `user`
 
 Você pode usar o endpoint de login para obter um access token e um refresh token:
 ```bash
@@ -253,338 +372,11 @@ Exemplo de requisição:
 
 ### Run results
 Todas APIs foram testadas utilizando o Postman. Abaixo estão os resultados da execução dos testes, retornando status code 200 para todas as requisições:
-```json
-{
-	"id": "690bbe73-cec0-483e-9a83-31e857624baf",
-	"name": "Tech Challenge Fase 1",
-	"timestamp": "2026-01-20T00:25:02.272Z",
-	"collection_id": "45464934-fd1ead76-9d28-405b-95a7-e368f69ffe6a",
-	"folder_id": 0,
-	"environment_id": "0",
-	"totalPass": 0,
-	"delay": 0,
-	"persist": true,
-	"status": "finished",
-	"startedAt": "2026-01-20T00:24:59.188Z",
-	"totalFail": 0,
-	"results": [
-		{
-			"id": "9bf068f2-49a2-4c60-85a4-364cc6c04467",
-			"name": "/api/v1/auth/login",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/auth/login",
-			"time": 173,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				173
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "b43f263d-69eb-433f-aa6b-fc016cd25167",
-			"name": "/api/v1/auth/refresh",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/auth/refresh",
-			"time": 150,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				150
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "60efc129-e0b8-4e6d-a564-ce9a3c8ad93e",
-			"name": "/api/v1/health",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/health",
-			"time": 152,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				152
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "c2688b65-bbf3-43f4-915a-f0523b6b1c8b",
-			"name": "/api/v1/books",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books",
-			"time": 204,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				204
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "ec44a693-2533-409f-a45b-0d8c083b91b5",
-			"name": "/api/v1/books/search",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/search\n?title=&category=",
-			"time": 437,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				437
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "d0bb8156-13e2-43e7-ad1e-c159a368837e",
-			"name": "/api/v1/books/{id}",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/100\n",
-			"time": 149,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				149
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "5017ee22-bc8e-4d6f-add8-7d882e21fe55",
-			"name": "/api/v1/books/top-rated",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/top-rated",
-			"time": 150,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				150
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "68653e2b-fba4-454b-86b7-0b73996c5888",
-			"name": "/api/v1/books/price-range",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/price-range?min=20&max=27",
-			"time": 147,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				147
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "5e8160e2-028d-4d87-aa59-bd1a0f6f3347",
-			"name": "/api/v1//books/categories",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/categories\n",
-			"time": 147,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				147
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "ebe1d5b8-5d46-4d43-8b81-9eb3790d9018",
-			"name": "/api/v1/stats/overview",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/stats/overview\n",
-			"time": 143,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				143
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "89d07bf4-31e8-4bf0-8cf7-4575ab31aa2a",
-			"name": "/api/v1/stats/categories",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/stats/categories\n",
-			"time": 145,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				145
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "a6a316de-2d04-4e1c-8677-68bcc24770ec",
-			"name": "/api/v1/ml/features",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/features\n",
-			"time": 157,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				157
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "073698a5-5f33-4a78-a475-f84fda2762f9",
-			"name": "/api/v1/ml/training-data",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/training-data\n",
-			"time": 156,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				156
-			],
-			"allTests": [
-				{}
-			]
-		},
-		{
-			"id": "f1e102ee-22a0-442e-80a4-edf62440f480",
-			"name": "/api/v1/ml/predictions",
-			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/predictions\n",
-			"time": 141,
-			"responseCode": {
-				"code": 200,
-				"name": "OK"
-			},
-			"tests": {},
-			"testPassFailCounts": {},
-			"times": [
-				141
-			],
-			"allTests": [
-				{}
-			]
-		}
-	],
-	"count": 1,
-	"totalTime": 2451,
-	"collection": {
-		"requests": [
-			{
-				"id": "9bf068f2-49a2-4c60-85a4-364cc6c04467",
-				"method": "POST"
-			},
-			{
-				"id": "b43f263d-69eb-433f-aa6b-fc016cd25167",
-				"method": "POST"
-			},
-			{
-				"id": "60efc129-e0b8-4e6d-a564-ce9a3c8ad93e",
-				"method": "GET"
-			},
-			{
-				"id": "c2688b65-bbf3-43f4-915a-f0523b6b1c8b",
-				"method": "GET"
-			},
-			{
-				"id": "ec44a693-2533-409f-a45b-0d8c083b91b5",
-				"method": "GET"
-			},
-			{
-				"id": "d0bb8156-13e2-43e7-ad1e-c159a368837e",
-				"method": "GET"
-			},
-			{
-				"id": "5017ee22-bc8e-4d6f-add8-7d882e21fe55",
-				"method": "GET"
-			},
-			{
-				"id": "68653e2b-fba4-454b-86b7-0b73996c5888",
-				"method": "GET"
-			},
-			{
-				"id": "5e8160e2-028d-4d87-aa59-bd1a0f6f3347",
-				"method": "GET"
-			},
-			{
-				"id": "ebe1d5b8-5d46-4d43-8b81-9eb3790d9018",
-				"method": "GET"
-			},
-			{
-				"id": "89d07bf4-31e8-4bf0-8cf7-4575ab31aa2a",
-				"method": "GET"
-			},
-			{
-				"id": "a6a316de-2d04-4e1c-8677-68bcc24770ec",
-				"method": "GET"
-			},
-			{
-				"id": "073698a5-5f33-4a78-a475-f84fda2762f9",
-				"method": "GET"
-			},
-			{
-				"id": "f1e102ee-22a0-442e-80a4-edf62440f480",
-				"method": "POST"
-			}
-		]
-	}
-}
-```
+* 14 requests
+* 0 falhas
+* tempo total ~2.4s
+* 100% com status 200
+> Os detalhes completos da execução da collection do Postman estão em doc/run_test_postman.json.
 
 ### POST /api/v1/auth/login
 Endpoint para autenticação de usuários e obtenção de tokens JWT.
@@ -592,14 +384,14 @@ Endpoint para autenticação de usuários e obtenção de tokens JWT.
 Admin:
 ```json
 {
-  "username": "admin123",
+  "username": "admin",
   "password": "admin123"
 }
 ```
 User:
 ```json
 {
-  "username": "user123",
+  "username": "user",
   "password": "user123"
 }
 ```
@@ -607,8 +399,8 @@ User:
 ```json
 {
   "token_type": "bearer",
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTc2ODc1MDQ5MH0.lNkipr0kVVIoH020U8JbawaZWRkHaBlOU4TNi4_1Vb2",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwidHlwZSI6InJlZnJlc2giLCJleHAiOjE3NjkzNTE2OTB9.RPQW8s6j8mjeLPaS0Se1u8dn4oOwe5TYlDmvKBQAtiU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZAB...",
   "expires_in": 3600
 }
 ```
@@ -620,7 +412,7 @@ Endpoint para renovação de tokens JWT usando o refresh token.
 Para ser válido o refresh token deve ser o mesmo recebido no login:
 ```json
 {
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwidHlwZSI6InJlZnJlc2giLCJleHAiOjE3NjkzNTE2OTB9.RPQW8s6j8mjeLPaS0Se1u8dn4oOwe5TYlDmvKBQAtiU"
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZAB..."
 }
 ```
 #### Resposta
@@ -628,8 +420,8 @@ Você receberá um novo par de tokens:
 ```json
 {
     "token_type": "bearer",
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTc2ODc1MDYxOX0._n3wqHylwbRvhZbdukxmBxlCOTVNGkoN6WPvEc6if80",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwidHlwZSI6InJlZnJlc2giLCJleHAiOjE3NjkzNTE4MTl9.VZYnCl3rvO_UJ9axpVkkCYS7IqKgoeOWUGYSXnNr6Rc",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZAB...",
     "expires_in": 3600
 }
 ```
@@ -784,7 +576,7 @@ Endpoint para obter detalhes de um livro específico pelo seu ID.
 
 #### Parâmetros de exemplo
 ```bash
-Buscar o ID 100: http://127.0.0.1:8000/api/v1/books/10
+Buscar o ID 100: http://127.0.0.1:8000/api/v1/books/100
 ```
 
 #### Resposta
@@ -838,8 +630,8 @@ Endpoint para obter os livros com melhor avaliação (rating, que no caso é *5*
 Endpoint para filtrar livros por faixa de preço.
 - Não precisa de autenticação é um endpoint público.
 - Parâmetros de consulta (query parameters):
-  - `min_price` (obrigatório): preço mínimo.
-  - `max_price` (obrigatório): preço máximo.
+  - `min` (obrigatório): preço mínimo.
+  - `max` (obrigatório): preço máximo.
 #### Parâmetros de exemplo
 ```bash
 Filtrando por preço entre 20 e 27: `http://127.0.0.1:8000/api/v1/books/price-range?min=20&max=27`
@@ -878,7 +670,7 @@ Endpoint para obter a lista de categorias disponíveis na base de dados.
 - Não precisa de autenticação é um endpoint público.
 - Não precisa de parâmetros.
 #### Resposta
-```bash
+```json
 [
     "Academic",
     "Add a comment",
@@ -887,50 +679,7 @@ Endpoint para obter a lista de categorias disponíveis na base de dados.
     "Autobiography",
     "Biography",
     "Business",
-    "Childrens",
-    "Christian",
-    "Christian Fiction",
-    "Classics",
-    "Contemporary",
-    "Crime",
-    "Cultural",
-    "Default",
-    "Erotica",
-    "Fantasy",
-    "Fiction",
-    "Food and Drink",
-    "Health",
-    "Historical",
-    "Historical Fiction",
-    "History",
-    "Horror",
-    "Humor",
-    "Music",
-    "Mystery",
-    "New Adult",
-    "Nonfiction",
-    "Novels",
-    "Paranormal",
-    "Parenting",
-    "Philosophy",
-    "Poetry",
-    "Politics",
-    "Psychology",
-    "Religion",
-    "Romance",
-    "Science",
-    "Science Fiction",
-    "Self Help",
-    "Sequential Art",
-    "Short Stories",
-    "Spirituality",
-    "Sports and Games",
-    "Suspense",
-    "Thriller",
-    "Travel",
-    "Unknown",
-    "Womens Fiction",
-    "Young Adult"
+    ...,
 ]
 ```
 
@@ -958,7 +707,7 @@ Endpoint para obter estatísticas por categoria.
 - Não precisa de autenticação é um endpoint público.
 - Não precisa de parâmetros.
 #### Resposta
-```bash
+```json
 {
     "Poetry": {
         "count": 19,
@@ -1125,5 +874,89 @@ Modelo de logs implementado com Loguru em `utils/logger.py`.
 ![Exemplo de logs](./doc/logExemple.png)
 
 ## Dashboard de Insights
-* Implementado com Streamlit em `dashboard/insights_dashboard.py`.
-* Executar com: `streamlit run dashboard/insights_dashboard.py`
+* Implementado com Streamlit em `dashboard/app.py`.
+* Executar com: `streamlit run dashboard/app.py`
+
+---
+
+## Checklist de Requisitos Atendidos
+
+### Entregáveis Obrigatórios
+
+- [x] **Repositório do GitHub Organizado**
+  - [x] Código estruturado em módulos (`api/`, `scripts/`, `data/`, `utils/`, `dashboard/`, etc.).
+  - [x] README completo com:
+    - [x] Descrição do projeto e arquitetura.
+    - [x] Instruções de instalação e configuração.
+    - [x] Documentação das rotas da API.
+    - [x] Exemplos de chamadas com requests/responses.
+    - [x] Instruções para execução em produção e localmente.
+
+- [x] **Sistema de Web Scraping**
+  - [x] Script automatizado para extrair dados de `https://books.toscrape.com/`.
+  - [x] Dados armazenados em `data/books.csv`.
+  - [x] Script executável e documentado (`scripts/scraper.py` + endpoint `/api/v1/scraping/trigger`).
+
+- [x] **API RESTful Funcional**
+  - [x] API implementada com **FastAPI**.
+  - [x] Endpoints obrigatórios implementados.
+  - [x] Documentação automática via Swagger/OpenAPI (`/docs`).
+
+- [x] **Deploy Público**
+  - [x] API deployada no Render.
+  - [x] Link público funcional.
+  - [x] API operacional em produção (todas as rotas testadas via Postman).
+
+- [x] **Plano Arquitetural**
+  - [x] Diagrama da arquitetura (pipeline de dados, scraping, API, ML e dashboard).
+  - [x] Arquitetura pensada para escalabilidade futura (separação por módulos/routers e camadas).
+  - [x] Cenário de uso para cientistas de dados / ML (endpoints `ml_*`).
+  - [x] Plano de integração com modelos de ML (endpoints `features`, `training-data` e `predictions`).
+
+- [x] **Vídeo de Apresentação**
+  - [x] Demonstração técnica da solução.
+  - [x] Apresentação da arquitetura e do pipeline de dados.
+  - [x] Execução de chamadas reais à API em produção.
+  - [x] Comentários sobre boas práticas implementadas.
+
+---
+
+### Objetivos Técnicos Core
+
+- [x] **Web Scraping Robusto**
+  - [x] Extração de todos os livros do site.
+  - [x] Captura de: título, preço, rating, disponibilidade, categoria e imagem.
+
+- [x] **Endpoints Obrigatórios da API**
+  - [x] `GET /api/v1/books`
+  - [x] `GET /api/v1/books/{id}`
+  - [x] `GET /api/v1/books/search?title={title}&category={category}`
+  - [x] `GET /api/v1/books/categories`
+  - [x] `GET /api/v1/health`
+
+- [x] **Endpoints Opcionais da API**
+  - [x] `GET /api/v1/stats/overview`
+  - [x] `GET /api/v1/stats/categories`
+  - [x] `GET /api/v1/books/top-rated`
+  - [x] `GET /api/v1/books/price-range?min={min}&max={max}`
+
+---
+
+### Desafios Adicionais
+
+- [x] **Desafio 1: Sistema de Autenticação (JWT)**
+  - [x] `POST /api/v1/auth/login`
+  - [x] `POST /api/v1/auth/refresh`
+  - [x] Proteção de endpoints de admin:
+    - [x] `POST /api/v1/scraping/trigger`
+    - [x] `GET /api/v1/health/performance`
+
+- [x] **Desafio 2: Pipeline ML-Ready**
+  - [x] `GET /api/v1/ml/features`
+  - [x] `GET /api/v1/ml/training-data`
+  - [x] `POST /api/v1/ml/predictions`
+
+- [x] **Desafio 3: Monitoramento & Analytics**
+  - [x] Logs estruturados com Loguru (`utils/logger.py`, `logs/app.log`).
+  - [x] Métricas de performance da API via endpoint `GET /api/v1/health/performance`.
+  - [x] Dashboard simples de insights em **Streamlit** consumindo os endpoints de stats.

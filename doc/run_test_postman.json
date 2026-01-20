@@ -1,0 +1,330 @@
+{
+	"id": "690bbe73-cec0-483e-9a83-31e857624baf",
+	"name": "Tech Challenge Fase 1",
+	"timestamp": "2026-01-20T00:25:02.272Z",
+	"collection_id": "45464934-fd1ead76-9d28-405b-95a7-e368f69ffe6a",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 0,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-01-20T00:24:59.188Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "9bf068f2-49a2-4c60-85a4-364cc6c04467",
+			"name": "/api/v1/auth/login",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/auth/login",
+			"time": 173,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				173
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b43f263d-69eb-433f-aa6b-fc016cd25167",
+			"name": "/api/v1/auth/refresh",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/auth/refresh",
+			"time": 150,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				150
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "60efc129-e0b8-4e6d-a564-ce9a3c8ad93e",
+			"name": "/api/v1/health",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/health",
+			"time": 152,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				152
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "c2688b65-bbf3-43f4-915a-f0523b6b1c8b",
+			"name": "/api/v1/books",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books",
+			"time": 204,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				204
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ec44a693-2533-409f-a45b-0d8c083b91b5",
+			"name": "/api/v1/books/search",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/search\n?title=&category=",
+			"time": 437,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				437
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d0bb8156-13e2-43e7-ad1e-c159a368837e",
+			"name": "/api/v1/books/{id}",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/100\n",
+			"time": 149,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				149
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5017ee22-bc8e-4d6f-add8-7d882e21fe55",
+			"name": "/api/v1/books/top-rated",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/top-rated",
+			"time": 150,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				150
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "68653e2b-fba4-454b-86b7-0b73996c5888",
+			"name": "/api/v1/books/price-range",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/price-range?min=20&max=27",
+			"time": 147,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				147
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5e8160e2-028d-4d87-aa59-bd1a0f6f3347",
+			"name": "/api/v1//books/categories",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/books/categories\n",
+			"time": 147,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				147
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ebe1d5b8-5d46-4d43-8b81-9eb3790d9018",
+			"name": "/api/v1/stats/overview",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/stats/overview\n",
+			"time": 143,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				143
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "89d07bf4-31e8-4bf0-8cf7-4575ab31aa2a",
+			"name": "/api/v1/stats/categories",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/stats/categories\n",
+			"time": 145,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				145
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "a6a316de-2d04-4e1c-8677-68bcc24770ec",
+			"name": "/api/v1/ml/features",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/features\n",
+			"time": 157,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				157
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "073698a5-5f33-4a78-a475-f84fda2762f9",
+			"name": "/api/v1/ml/training-data",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/training-data\n",
+			"time": 156,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				156
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "f1e102ee-22a0-442e-80a4-edf62440f480",
+			"name": "/api/v1/ml/predictions",
+			"url": "https://fiap-tech-challenge-fase1-18ng.onrender.com/api/v1/ml/predictions\n",
+			"time": 141,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				141
+			],
+			"allTests": [
+				{}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2451,
+	"collection": {
+		"requests": [
+			{
+				"id": "9bf068f2-49a2-4c60-85a4-364cc6c04467",
+				"method": "POST"
+			},
+			{
+				"id": "b43f263d-69eb-433f-aa6b-fc016cd25167",
+				"method": "POST"
+			},
+			{
+				"id": "60efc129-e0b8-4e6d-a564-ce9a3c8ad93e",
+				"method": "GET"
+			},
+			{
+				"id": "c2688b65-bbf3-43f4-915a-f0523b6b1c8b",
+				"method": "GET"
+			},
+			{
+				"id": "ec44a693-2533-409f-a45b-0d8c083b91b5",
+				"method": "GET"
+			},
+			{
+				"id": "d0bb8156-13e2-43e7-ad1e-c159a368837e",
+				"method": "GET"
+			},
+			{
+				"id": "5017ee22-bc8e-4d6f-add8-7d882e21fe55",
+				"method": "GET"
+			},
+			{
+				"id": "68653e2b-fba4-454b-86b7-0b73996c5888",
+				"method": "GET"
+			},
+			{
+				"id": "5e8160e2-028d-4d87-aa59-bd1a0f6f3347",
+				"method": "GET"
+			},
+			{
+				"id": "ebe1d5b8-5d46-4d43-8b81-9eb3790d9018",
+				"method": "GET"
+			},
+			{
+				"id": "89d07bf4-31e8-4bf0-8cf7-4575ab31aa2a",
+				"method": "GET"
+			},
+			{
+				"id": "a6a316de-2d04-4e1c-8677-68bcc24770ec",
+				"method": "GET"
+			},
+			{
+				"id": "073698a5-5f33-4a78-a475-f84fda2762f9",
+				"method": "GET"
+			},
+			{
+				"id": "f1e102ee-22a0-442e-80a4-edf62440f480",
+				"method": "POST"
+			}
+		]
+	}
+}
