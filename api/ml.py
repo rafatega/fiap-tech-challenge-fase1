@@ -32,8 +32,7 @@ def _to_in_stock(disponibilidade: str) -> int:
         "Features retornadas:\n"
         "- categoria (str)\n"
         "- in_stock (0/1)\n"
-        "- rating (0..5)\n\n"
-        "Obs.: o 'id' é retornado apenas para rastreabilidade."),
+        "- rating (0..5)\n\n"),
     response_model=List[MLFeatureItem],
 )
 def get_ml_features():
@@ -45,7 +44,6 @@ def get_ml_features():
 
     return [
         MLFeatureItem(
-            id=int(b["id"]),
             categoria=str(b.get("categoria", "Unknown")),
             in_stock=_to_in_stock(str(b.get("disponibilidade", ""))),
             rating=int(b.get("rating", 0) or 0),

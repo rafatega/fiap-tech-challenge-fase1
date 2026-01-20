@@ -775,13 +775,11 @@ Endpoint para obter as features utilizadas no modelo de machine learning.
 ```json
 [
     {
-        "id": 1,
         "categoria": "Poetry",
         "in_stock": 1,
         "rating": 3
     },
     {
-        "id": 2,
         "categoria": "Historical Fiction",
         "in_stock": 1,
         "rating": 1
