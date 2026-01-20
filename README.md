@@ -138,7 +138,7 @@ graph TB
         STATE["In-Memory DB<br/>state.py"]
     end
 
-    subgraph API ["FASTAPI - CAMADA DE SERVIÇO"]
+    subgraph API ["FASTAPI main.py"]
         MAIN["main.py<br/>Inicialização"]
         
         subgraph AUTENTICACAO ["Segurança"]
@@ -156,7 +156,7 @@ graph TB
             SCRAPING["scraping.py<br/>POST /scraping/trigger"]
         end
         
-        VALIDACAO["✅ Pydantic Models<br/>Validação + Serialização"]
+        VALIDACAO["Pydantic Models<br/>Validação + Serialização"]
     end
 
     subgraph CONSUMO ["CONSUMO"]
