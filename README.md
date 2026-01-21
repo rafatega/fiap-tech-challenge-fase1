@@ -2,6 +2,11 @@
 
 API desenvolvida para realizar scraping de livros do site [Books to Scrape](https://books.toscrape.com) e disponibilizar os dados através de uma API RESTful com autenticação via JWT.
 
+Vídeo demonstração: https://youtu.be/phtK-D33-A8
+Links do deploy:
+- API: https://fiap-tech-challenge-fase1-18ng.onrender.com/docs
+- Dashboard: https://fiap-tech-challenge-fase1-1.onrender.com
+
 ---
 
 ## Índice
